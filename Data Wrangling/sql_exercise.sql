@@ -76,6 +76,7 @@ SELECT `Facilities`.`name` as "facname",
       ON `Bookings`.`facid` = `Facilities`.`facid`
     LEFT JOIN `Members`
       ON `Bookings`.`memid` = `Members`.`memid`
+  WHERE `Bookings`.`starttime` LIKE "2010-09-14"
   HAVING cost > 30
 
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
@@ -91,6 +92,7 @@ SELECT *
           ON `Bookings`.`facid` = `Facilities`.`facid`
         LEFT JOIN `Members`
           ON `Bookings`.`memid` = `Members`.`memid`) 
+      WHERE `Bookings`.`starttime` LIKE "2010-09-14"
     AS x
   WHERE x.`cost` > 30
 
