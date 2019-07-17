@@ -1,7 +1,7 @@
 /* Q1: Some of the facilities charge a fee to members, but some do not.
 Please list the names of the facilities that do. */
 SELECT name FROM  `Facilities` 
-    WHERE membercost != 0
+    WHERE membercost = 0
 
 /* Q2: How many facilities do not charge a fee to members? */
 SELECT COUNT(*) AS `Member_Feeless`
@@ -32,7 +32,7 @@ SELECT  `name` ,  `monthlymaintenance` ,
         THEN  "expensive"
         ELSE  "cheap"
     END AS  `Expensive?` 
-FROM  `Facilities` 
+  FROM  `Facilities` 
 
 /* Q6: You'd like to get the first and last name of the last member(s)
 who signed up. Do not use the LIMIT clause for your solution. */
@@ -65,11 +65,49 @@ different costs to members (the listed costs are per half-hour 'slot'), and
 the guest user's ID is always 0. Include in your output the name of the
 facility, the name of the member formatted as a single column, and the cost.
 Order by descending cost, and do not use any subqueries. */
-
+SELECT `Facilities`.`name` as "facname", 
+    CONCAT(`Members`.`firstname`, " ", `Members`.`surname`) AS `memname`,
+    CASE WHEN `Bookings`.`memid` = 0 
+        THEN `Bookings`.`slots` * `Facilities`.`guestcost`
+        ELSE `Bookings`.`slots` * `Facilities`.`membercost`
+    END AS `cost`
+  FROM `Bookings` 
+    LEFT JOIN `Facilities` 
+      ON `Bookings`.`facid` = `Facilities`.`facid`
+    LEFT JOIN `Members`
+      ON `Bookings`.`memid` = `Members`.`memid`
+  HAVING cost > 30
 
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
-
+SELECT *
+  FROM (SELECT `Facilities`.`name` as "facname", 
+        CONCAT(`Members`.`firstname`, " ", `Members`.`surname`) AS `memname`,
+        CASE WHEN `Bookings`.`memid` = 0 
+            THEN `Bookings`.`slots` * `Facilities`.`guestcost`
+            ELSE `Bookings`.`slots` * `Facilities`.`membercost`
+        END AS `cost`
+      FROM `Bookings` 
+        LEFT JOIN `Facilities` 
+          ON `Bookings`.`facid` = `Facilities`.`facid`
+        LEFT JOIN `Members`
+          ON `Bookings`.`memid` = `Members`.`memid`) 
+    AS x
+  WHERE x.`cost` > 30
 
 /* Q10: Produce a list of facilities with a total revenue less than 1000.
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
+SELECT x.`facname`, 
+    SUM(x.`price`) as "revenue"
+  FROM (
+    SELECT `Facilities`.`name` as `facname`,
+        CASE WHEN `Bookings`.`memid` = 0 
+          THEN `Bookings`.`slots` * `Facilities`.`guestcost`
+          ELSE `Bookings`.`slots` * `Facilities`.`membercost`
+        END AS `price`
+    FROM `Bookings`
+      LEFT JOIN `Facilities`
+        ON `Bookings`.`facid` = `Facilities`.`facid`
+    ) AS x
+  GROUP BY x.`facname`
+  ORDER BY revenue DESC
